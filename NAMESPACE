@@ -1,0 +1,7 @@
+export(hda)
+export(hda.default)
+export(hda.formula)
+export(showloadings)
+export(predict.hda)
+export(print.hda)
+export(plot.hda)
