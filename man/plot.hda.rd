@@ -6,15 +6,16 @@ Visualizes the scores on selected components of the
 discriminant space of reduced dimension.
 }
 \usage{
-plot.hda(x, comps = 1:x$reduced.dimension, ...)
+plot.hda(x, comps = 1:x$reduced.dimension, col = x$grouping, ...)
 }
 \arguments{
   \item{x}{An object of class \code{hda}.}
   \item{comps}{A vector of component ids for which the data should be displayed.}
-  \item{\dots}{So far not used.}
+  \item{col}{Color vector for the data to be displayed. Per default, different colors represent the classes.}
+  \item{\dots}{Further arguments to be passed to the plot function.}
 }
 \details{
-Scatterplots of the scores. Different colors represent the classes.        
+Scatterplots of the scores.        
 }
 \value{No value is returned.
 }
