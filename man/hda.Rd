@@ -4,12 +4,12 @@
 \alias{hda.formula}
 \alias{print.hda}
 \title{Heteroscedastic discriminant analysis}
-\description{Computes a linear transformation loadings matrix for discrimination of classes unequal covariance matrices.}
+\description{Computes a linear transformation loadings matrix for discrimination of classes with unequal covariance matrices.}
 \usage{
 hda(x, ...)
-\method{hda}{default}(x, grouping, newdim = 1:(ncol(x)-1), crule = FALSE, reg.lamb=NULL, reg.gamm=NULL, 
-             initial.loadings=NULL, niveaux = c(0.05,0.05), noutit=7, ninit=10, ...)
-\method{hda}{formula}(formula, data=NULL, ...)
+\method{hda}{default}(x, grouping, newdim = 1:(ncol(x)-1), crule = FALSE, reg.lamb = NULL, reg.gamm = NULL, 
+             initial.loadings = NULL, niveaux = c(0.05,0.05), noutit = 7, ninit = 10, ...)
+\method{hda}{formula}(formula, data = NULL, ...)
 }
 \arguments{
   \item{x}{A matrix or data frame containing the explanatory variables. The method is restricted to numerical data.}

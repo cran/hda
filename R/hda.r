@@ -81,10 +81,10 @@ showloadings <- function(object, comps = 1:object$reduced.dimension){
 
 ######################
 ### plot function to visualize score
-plot.hda <- function(x, comps = 1:x$reduced.dimension, ...){
+plot.hda <- function(x, comps = 1:x$reduced.dimension, col = x$grouping, ...){
   if (max(comps) > nrow(x$hda.loadings)) stop("Component ids have to be <= dimension of object$hda.loadings!")
-  if (length(comps) > 1) plot(as.data.frame(x$hda.scores[,comps]), col=x$grouping)
-  if (length(comps) == 1) plot(x$hda.scores[,comps], col=x$grouping, ylab = paste("comp",comps,sep=" "))
+  if (length(comps) > 1) plot(as.data.frame(x$hda.scores[,comps]), col = col, ...)
+  if (length(comps) == 1) plot(x$hda.scores[,comps], col = col, ylab = paste("comp",comps,sep=" "), ...)
   }
 
 ###########################################################################
