@@ -74,7 +74,7 @@ showloadings <- function(object, comps = 1:object$reduced.dimension){
     }
   if(d==1){
     par(mfrow=c(1,1))
-    plot(object$hda.loadings[,comps], type="n", xlab="Variable index", ylab=vnames[k])
+    plot(object$hda.loadings[,comps], type="n", xlab="Variable index", ylab=vnames[1])
     for(k in 1:nrow(object$hda.loadings)) text(k, object$hda.loadings[k,comps], vnames[k], col=k) 
     }          
   }
@@ -91,6 +91,10 @@ plot.hda <- function(x, comps = 1:x$reduced.dimension, col = x$grouping, ...){
 ### predict function for easy transformation of new data with a given model
 predict.hda <- function(object, newdata, alldims = FALSE, ...){
   if (class(object) != "hda") stop("Object must be of class hda!")
+  if(is.data.frame(newdata)) newdata <- as.matrix(newdata)
+  if(!is.matrix(newdata)) stop("Newdata must be of type matrix or data frame!")
+  if(dim(object$hda.loadings)[2] != dim(newdata)[2]) stop("Newdata must be of same dimension as the explanatory input variables data set!")
+
   new.transformed.data <- newdata %*% object$hda.loadings
   if (alldims == FALSE) new.transformed.data <- new.transformed.data[,1:object$reduced.dimension]
   return(new.transformed.data)   
@@ -296,21 +300,6 @@ hda.default <- function(x, grouping, newdim = 1:(ncol(x)-1), crule = FALSE, reg.
   return(result) 
   }
 
-
-###################################################
-### Tests:
-###
-### - Funktion testen:
-###   - verschiedene Datensimulations-Parameter en 
-###   - Datensätze aus mlbench (Vehichles / ...)
-###   - verschiedene Initialisierungen 
-###   - verschiedene Iterationszahlen
-###
-### - (Nochmal den Agorithmus Vergleichen mit Original- Matlabcode)
-### - aov / manova - output
-### - Mittelwertunterschiede in der Likelihood 
-### - Beispiel Irisdaten  / Likelihood
-### - (evtl. stop-Kriterium einbauen)
 
 
 
