@@ -1,6 +1,6 @@
 Package: hda
-Version: 0.1-10
-Date: 2010-07-29
+Version: 0.1-11
+Date: 2010-09-08
 Title: Heteroscedastic Discriminant Analysis
 Author: Gero Szepannek
 Maintainer: Gero Szepannek <gero.szepannek@web.de>
@@ -10,6 +10,6 @@ Description: Functions to perform dimensionality reduction for
         unequal.
 License: GPL (>= 2)
 URL: http://www.statistik.uni-dortmund.de
-Packaged: 2010-07-29 18:16:54 UTC; Gero
+Packaged: 2010-09-08 19:28:19 UTC; Gero
 Repository: CRAN
-Date/Publication: 2010-07-30 05:02:14
+Date/Publication: 2010-09-15 07:41:52

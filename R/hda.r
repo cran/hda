@@ -63,7 +63,7 @@ showloadings <- function(object, comps = 1:object$reduced.dimension){
   par(cex=1)
   vnames <- rownames(object$hda.loadings)
   d <- length(comps)
-  if(d > 1){
+  if(d > 2){
     par(mfrow=c(d,d))
     for(i in comps){
         for(j in comps){
@@ -72,6 +72,11 @@ showloadings <- function(object, comps = 1:object$reduced.dimension){
             }
         }
     }
+  if(d==2){
+    par(mfrow=c(1,1))
+    plot(object$hda.loadings[,c(comps[1],comps[2])], type="n")
+    for(k in 1:nrow(object$hda.loadings)) text(object$hda.loadings[k,comps[1]], object$hda.loadings[k,comps[2]], vnames[k], col=k) 
+    }    
   if(d==1){
     par(mfrow=c(1,1))
     plot(object$hda.loadings[,comps], type="n", xlab="Variable index", ylab=vnames[1])
