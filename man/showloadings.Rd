@@ -6,11 +6,13 @@ Visualizes the loadings of the original variables on the components of the trans
 discriminant space of reduced dimension.
 }
 \usage{
-showloadings(object, comps = 1:object$reduced.dimension)
+showloadings(object, comps = 1:object$reduced.dimension, ...)
 }
 \arguments{
   \item{object}{An object of class \code{hda}.}
   \item{comps}{A vector of component ids for which the loadings should be displayed.}
+  \item{\dots}{Further arguments to be passed to the plot functions.}
+
 }
 \details{
 Scatterplots where the loading of any variable on any hda component is represented by one point of different 
@@ -39,15 +41,16 @@ meana       <- meanb <- c(0,0,0,0,0)
 cova        <- diag(5)
 cova[1,1]   <- 0.2
 for(i in 3:4){
-  for(j in (i+1):5){cova[i,j] <- cova[j,i] <- 0.75^(j-i)}
+  for(j in (i+1):5){
+    cova[i,j] <- cova[j,i] <- 0.75^(j-i)}
   }
 covb       <- cova
 diag(covb)[1:2]  <- c(1,0.2)
 
-xa      <- rmvnorm(n,meana,cova)
-xb      <- rmvnorm(n,meanb,covb)
+xa      <- rmvnorm(n, meana, cova)
+xb      <- rmvnorm(n, meanb, covb)
 x       <- rbind(xa,xb)
-classes <- as.factor(c(rep(1,n),rep(2,n)))
+classes <- as.factor(c(rep(1,n), rep(2,n)))
 # rotate simulated data
 symmat <- matrix(runif(5^2),5)
 symmat <- symmat + t(symmat)
