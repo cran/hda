@@ -6,7 +6,7 @@ Visualizes the scores on selected components of the
 discriminant space of reduced dimension.
 }
 \usage{
-plot.hda(x, comps = 1:x$reduced.dimension, col = x$grouping, ...)
+\method{plot}{hda}(x, comps = 1:x$reduced.dimension, col = x$grouping, ...)
 }
 \arguments{
   \item{x}{An object of class \code{hda}.}
@@ -31,8 +31,8 @@ by means of auditory modelling.} In: Proceedings of European Signal Processing C
 \seealso{\code{\link{hda}}, \code{\link{predict.hda}}, \code{\link{showloadings}}}
 
 \examples{
-library(mvtnorm)
-library(MASS)
+library("mvtnorm")
+library("MASS")
 
 # simulate data for two classes
 n           <- 50
@@ -40,16 +40,17 @@ meana       <- meanb <- c(0,0,0,0,0)
 cova        <- diag(5)
 cova[1,1]   <- 0.2
 for(i in 3:4){
-  for(j in (i+1):5){cova[i,j] <- cova[j,i] <- 0.75^(j-i)}
+  for(j in (i+1):5){
+    cova[i,j] <- cova[j,i] <- 0.75^(j-i)}
   }
 covb       <- cova
 diag(covb)[1:2]  <- c(1,0.2)
 
-xa      <- rmvnorm(n,meana,cova)
-xb      <- rmvnorm(n,meanb,covb)
+xa      <- rmvnorm(n, meana, cova)
+xb      <- rmvnorm(n, meanb, covb)
 x       <- rbind(xa,xb)
-classes <- as.factor(c(rep(1,n),rep(2,n)))
-# rotate simulated data
+classes <- as.factor(c(rep(1,n), rep(2,n)))
+## rotate simulated data
 symmat <- matrix(runif(5^2),5)
 symmat <- symmat + t(symmat)
 even   <- eigen(symmat)$vectors
@@ -60,7 +61,7 @@ plot(as.data.frame(rotatedspace), col = classes)
 hda.res <- hda(rotatedspace, classes)
 
 # plot scores
-plot.hda(hda.res)
+plot(hda.res)
 }
 
 \keyword{classif}
