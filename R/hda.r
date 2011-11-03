@@ -304,7 +304,7 @@ hda.default <- function(x, grouping, newdim = 1:(ncol(x)-1), crule = FALSE,
   newspace  <- as.data.frame(as.matrix(x) %*% hda.loadings)
   
   # class distribution parameters in new space
-  new.classmeans  <- by(as.data.frame(newspace[,1:newdim]),grouping,mean)
+  new.classmeans  <- by(as.data.frame(newspace[,1:newdim]),grouping,colMeans)
   new.classcovs   <- by(as.data.frame(newspace[,1:newdim]),grouping,cov)
   new.classdist   <- list(new.classmeans = new.classmeans, new.classcovs = new.classcovs)
   
@@ -327,7 +327,7 @@ hda.default <- function(x, grouping, newdim = 1:(ncol(x)-1), crule = FALSE,
                          dfs = dfs, pValue = pval) 
   
   # test on equal class means in remaining dimension
-  new.classmeans2  <- by(as.data.frame(newspace[,(newdim+1):dms]),grouping,mean)
+  new.classmeans2  <- by(as.data.frame(newspace[,(newdim+1):dms]),grouping,colMeans)
   new.classcovs2   <- by(as.data.frame(newspace[,(newdim+1):dms]),grouping,cov)
   if((dms-newdim) > 1) 
     stats <- summary(manova(as.matrix(newspace[,(newdim+1):dms])~grouping), test="Wilks")[[4]][1,]
