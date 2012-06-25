@@ -123,7 +123,20 @@ predict.hda <- function(object, newdata, alldims = FALSE, task = c("dr", "c"), .
         stop("Classification of newdata can only be done id option 'crule = TRUE' has been chosen at hda() call")
     new.transformed.data <- newdata %*% object$hda.loadings
     new.transformed.data <- new.transformed.data[,1:object$reduced.dimension]
-    classification.result <- predict(object$naivebayes, new.transformed.data, ...)
+    if (object$reduced.dimension > 1) classification.result <- predict(object$naivebayes, new.transformed.data, ...)
+    if (object$reduced.dimension == 1){
+      warning("Function predict.naiveBayes {e1071} not implemented for dimension 1 of the reduced space!\n
+               Prediction is done without using naiveBayes.\n")
+    
+      priors <- object$naivebayes$apriori/ sum(object$naivebayes$apriori)  
+      classids <- 1:nrow(object$naivebayes$tables[[1]])  ### muss hier anstatt x der variablenname hin?
+    
+      priodens <- function(i) return(priors[i]*dnorm(new.transformed.data, mean = object$naivebayes$tables[[1]][i,1], sd = object$naivebayes$tables[[1]][i,2]))
+      posteriors <- sapply(classids, priodens)
+      posteriors <- t(apply(posteriors, 1, function(x) return(x / sum(x))))
+      classification.result <- rownames(object$naivebayes$tables[[1]])[apply(posteriors, 1, which.max)]
+    }
+    
     result <- list(classification.result, new.transformed.data)
     names(result) <- c("classification.result", "new.transformed.data")
     return(result)
