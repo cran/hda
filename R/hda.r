@@ -52,52 +52,103 @@ print.hda <- function(x, ...){
   cat("\nClass covariances in reduced space: \n")
   print(x$class.dist$new.classcovs)
   cat("\n\n")
+
+  cat("\nComponent class discrimination accuracies in reduced space: \n")
+  print(x$comp.acc)
+  cat("\n\n")
+  
   
   invisible(x)
   }
 
 ######################
 ### visualize loadings
-showloadings <- function(object, comps = 1:object$reduced.dimension, ...){
-  if (max(comps) > nrow(object$hda.loadings)) 
-    stop("Component ids have to be <= dimension of object$hda.loadings")
+showloadings <- function(object, comps = 1:object$reduced.dimension, loadings = TRUE, ...){
+  
+  if (max(comps) > ncol(object$hda.loadings)) 
+    stop("Component ids have to be <= dimension of object$hda.loadings!")
+  
   vnames <- rownames(object$hda.loadings)
   d <- length(comps)
+  
+  # if no loadings should be plotted: replace loadings by lifts
+  if(!loadings) {
+    object$hda.loadings <- t(object$vlift$total.lift)
+    if(d == 1) object$hda.loadings <- t(object$hda.loadings)
+  }
+  if (max(comps) > ncol(object$hda.loadings)) 
+    stop("Component ids for loadings == FALSE have to be <= reduced dimension!")
+  
   if(d > 2){
     op <- par(mfrow=c(d,d))
     for(i in comps){
-        for(j in comps){
-            plot(object$hda.loadings[,c(j,i)], type="n", ...)
-            for(k in 1:nrow(object$hda.loadings)) 
-                text(object$hda.loadings[k,j], object$hda.loadings[k,i], vnames[k]) 
-        }
+      for(j in comps){
+        plot(object$hda.loadings[,c(j,i)], type="n", ...)
+        for(k in 1:nrow(object$hda.loadings)) 
+          text(object$hda.loadings[k,j], object$hda.loadings[k,i], vnames[k])        
+      }
     }
   }
+  
   if(d==2){
     op <- par(mfrow=c(1,1))
     plot(object$hda.loadings[,c(comps[1],comps[2])], type="n", ...)
     for(k in 1:nrow(object$hda.loadings)) 
-        text(object$hda.loadings[k,comps[1]], object$hda.loadings[k,comps[2]], vnames[k]) 
-  }    
+      text(object$hda.loadings[k,comps[1]], object$hda.loadings[k,comps[2]], vnames[k])     
+  }
+  
   if(d==1){
     op <- par(mfrow=c(1,1))
     plot(object$hda.loadings[,comps], type="n", xlab="Variable index", ylab=colnames(object$hda.loadings)[comps], ...)
     for(k in 1:nrow(object$hda.loadings)) 
-        text(k, object$hda.loadings[k,comps], vnames[k]) 
-  }     
+      text(k, object$hda.loadings[k,comps], vnames[k])    
+  }
+  
   par(op)
 }
 
 
 ######################
-### plot function to visualize score
-plot.hda <- function(x, comps = 1:x$reduced.dimension, col = x$grouping, ...){
+### plot function to visualize scores
+plot.hda <- function(x, comps = 1:x$reduced.dimension, scores = TRUE, col = x$grouping, ...){
   if (max(comps) > nrow(x$hda.loadings)) 
     stop("Component ids have to be <= dimension of object$hda.loadings!")
-  if (length(comps) > 1) 
-    plot(as.data.frame(x$hda.scores[,comps]), col = col, ...)
-  if (length(comps) == 1) 
-    plot(x$hda.scores[,comps], col = col, ylab = paste("comp",comps,sep=" "), ...)
+  # loadings plot
+  if(scores){
+    if (length(comps) > 1) 
+      plot(as.data.frame(x$hda.scores[,comps]), col = col, main = "Scores", ...)
+    if (length(comps) == 1) 
+      plot(x$hda.scores[,comps], col = col, ylab = paste("comp",comps,sep=" "), main = "Scores", ...)
+  }
+  # density plot
+  if(!scores){
+    priors <- table(x$grouping) / length(x$grouping)
+    ncl <- length(table(x$grouping))
+    d1 <- d2 <- ceiling(sqrt(length(comps)))
+    for(i in 3:1){
+      for(j in 3:1) if ( (i*j) >= length(comps)) {d1 <- i; d2 <- j}
+    }
+    par(mfrow=c(d1,d2))
+    for(d in comps){
+      k <- 1
+      mean.kd <- x$class.dist$new.classmeans[[k]][d]
+      sd.kd <- sqrt(x$class.dist$new.classcovs[[k]][d,d])
+      xpts <- seq(min(x$hda.scores[,d]), max(x$hda.scores[,d]), length.out = 500)
+      ymax <- max(priors[k]*dnorm(xpts, mean = mean.kd, sd = sd.kd))
+      for (j in 2:ncl) ymax <- max(ymax, priors[k]*dnorm(xpts, mean = x$class.dist$new.classmeans[[j]][d], sd = sqrt(x$class.dist$new.classcovs[[j]][d,d])))
+      
+      plot(xpts, priors[k]*dnorm(xpts, mean = mean.kd, sd = sd.kd), col = k, type = "l",
+           ylim = c(0, ymax), xlab = colnames(x$hda.scores)[d], ylab = "prior[k] * f(x|k)")
+      lines(rep(mean.kd, 2), c(0, priors[k]*dnorm(mean.kd, mean.kd, sd.kd)), lty = "dotted", col =k)
+      for(k in 2:ncl){
+        mean.kd <- x$class.dist$new.classmeans[[k]][d]
+        sd.kd <- sqrt(x$class.dist$new.classcovs[[k]][d,d])
+        xpts <- seq(min(x$hda.scores[,d]), max(x$hda.scores[,d]), length.out = 500)
+        lines(xpts, priors[k]*dnorm(xpts, mean = mean.kd, sd = sd.kd), col = k)
+        lines(rep(mean.kd, 2), c(0, priors[k]*dnorm(mean.kd, mean.kd, sd.kd)), lty = "dotted", col =k)        
+      }
+    }        
+  }
 }
 
 ###########################################################################
@@ -123,10 +174,24 @@ predict.hda <- function(object, newdata, alldims = FALSE, task = c("dr", "c"), .
         stop("Classification of newdata can only be done id option 'crule = TRUE' has been chosen at hda() call")
     new.transformed.data <- newdata %*% object$hda.loadings
     new.transformed.data <- new.transformed.data[,1:object$reduced.dimension]
-    if (object$reduced.dimension > 1) classification.result <- predict(object$naivebayes, new.transformed.data, ...)
+    prediction <- "Remove argument type = 'raw' in predict() call of naiveBayes() call or set it to 'class'."
+    posteriors <- "Remove argument type = 'class' in predict() call of naiveBayes() call or set it to 'raw'."
+    if (object$reduced.dimension > 1){
+      if(is.null(object$naivebayes$levels))
+        warning("Function naiveBayes() {e1071} requires vector of type factor for prediction of type 'class'!")
+      if (sum(ls() == "type") == 0 ){
+        prediction <- predict(object$naivebayes, new.transformed.data, type = "class", ...)
+        posteriors <- predict(object$naivebayes, new.transformed.data, type = "raw", ...)
+        }
+      if (sum(ls() == "type") > 0){
+        nbpred      <- predict(object$naivebayes, new.transformed.data, ...)
+        if (length(dim(nbpred))  > 0) posteriors  <- nbpred
+        if (length(dim(nbpred)) == 0) prediction  <- nbpred
+        remove(nbpred)
+        }
+      }
     if (object$reduced.dimension == 1){
-      warning("Function predict.naiveBayes {e1071} not implemented for dimension 1 of the reduced space!\n
-               Prediction is done without using naiveBayes.\n")
+      warning("Function predict.naiveBayes {e1071} not implemented for dimension 1 of the reduced space! Prediction is done without using naiveBayes().\n")
     
       priors <- object$naivebayes$apriori/ sum(object$naivebayes$apriori)  
       classids <- 1:nrow(object$naivebayes$tables[[1]])  ### muss hier anstatt x der variablenname hin?
@@ -134,11 +199,11 @@ predict.hda <- function(object, newdata, alldims = FALSE, task = c("dr", "c"), .
       priodens <- function(i) return(priors[i]*dnorm(new.transformed.data, mean = object$naivebayes$tables[[1]][i,1], sd = object$naivebayes$tables[[1]][i,2]))
       posteriors <- sapply(classids, priodens)
       posteriors <- t(apply(posteriors, 1, function(x) return(x / sum(x))))
-      classification.result <- rownames(object$naivebayes$tables[[1]])[apply(posteriors, 1, which.max)]
+      prediction <- as.factor(rownames(object$naivebayes$tables[[1]])[apply(posteriors, 1, which.max)])
     }
     
-    result <- list(classification.result, new.transformed.data)
-    names(result) <- c("classification.result", "new.transformed.data")
+    result <- list(prediction, posteriors, new.transformed.data)
+    names(result) <- c("prediction", "posteriors", "new.transformed.data")
     return(result)
     }                     
   }
@@ -162,12 +227,7 @@ compute.loadings <- function(covarray, clsizes, newd, initial = NULL, iters = 7,
     commonwithin    <- matrix(rowSums(sapply(1:ncl, function(i) clsizes[i] * covarray[,,i])), ncol=oldd, nrow=oldd) / totN
 
     # initialization loadings matrix
-    if(!is.null(initial)){
-      if (sum(dim(initial)== (dim(covarray)[1:2])) != 2) 
-        stop("(Optional) initalization of loading matrix must be quadratic and of size dim(x)[2]")
-      Trafo           <- initial  
-      }    
-    if (is.null(initial)) Trafo   <- diag(oldd)  
+    Trafo           <- initial  
     invG            <- array(dim=c(oldd,oldd,oldd))
 
     for (iter in 1:iters){
@@ -255,7 +315,7 @@ hda.default <- function(x, grouping, newdim = 1:(ncol(x)-1), crule = FALSE,
     stop("Class vector should contain different levels")
   if(dim(x)[2] < 2) 
     stop("Dimensionality reduction only meaningful if x has at least two coloumns")
-
+  
   # class parameters
   clsizes <- table(grouping)
   clnb    <- length(clsizes)
@@ -271,6 +331,23 @@ hda.default <- function(x, grouping, newdim = 1:(ncol(x)-1), crule = FALSE,
   if (sum(c(is.null(reg.lamb),is.null(reg.gamm))) < 2) 
     carray <- regularize(carray, clsizes, reg.lamb, reg.gamm)
 
+  
+  # initialization loadings matrix
+  if (is.character(initial.loadings)) {if (initial.loadings == "random"){
+    cat("Initialization by random orthonormal matrix.\n")
+    initial.loadings   <- qr.Q(qr(matrix(runif(dms^2), dms, dms)))
+  }}
+  else if(is.matrix(initial.loadings)){
+    if (sum(dim(initial.loadings)== (dim(carray)[1:2])) != 2) 
+      stop("(Optional) initalization of loading matrix must be quadratic and of size dim(x)[2]")
+  }    
+  else if (is.null(initial.loadings)){
+    cat("Initialization by the identity.\n")
+    initial.loadings   <- diag(dms)
+  }
+  else stop("Incorrect specification of initial.loadings!")
+  
+  
   hda.loadings <- NULL
   trace.newdim <- NULL
   # recursive call of hda.default if not a single newdim as specified
@@ -353,13 +430,201 @@ hda.default <- function(x, grouping, newdim = 1:(ncol(x)-1), crule = FALSE,
   
   if (crule){
     crule <- naiveBayes(newspace[,1:newdim], grouping)
-  } 
+  }
+  
+  # compute component accuracies
+  comp.accs <- comp.acc(list(grouping = grouping, class.dist = new.classdist))
+  if (ncol(comp.accs) == 1) colnames(comp.accs) <- colnames(hda.loadings)[1]
+  
+  priors <- table(grouping) / length(grouping)  
+  objkt <- list(x = x, priors = priors, grouping = grouping, reduced.dimension = newdim, comp.acc = comp.accs, hda.loadings = hda.loadings)
+  vlift <- comp.vlifts(objkt)
+  rm(objkt)
+  
+  # computation of componentwise accuracy (w.r.t training priors)
+  # [not done earlier as com.acc is used by function comp.vlifts() without total accuracy row]
+  tocomp.acc <- priors %*% comp.accs
+  rownames(tocomp.acc) <- "total"
+  comp.accs <- rbind(comp.accs, tocomp.acc)
+  
   result <- list(hda.loadings = hda.loadings, hda.scores = newspace, 
                  grouping = grouping, class.dist = new.classdist, 
-                 reduced.dimension = newdim, naivebayes = crule, 
+                 priors = priors, reduced.dimension = newdim, naivebayes = crule, 
+                 comp.acc = comp.accs, vlift = vlift,   
                  reg.lamb = reg.lamb, reg.gamm = reg.gamm, eqmean.test = eqmean.test, 
-                 homog.test = homog.test, hda.call = cl, trace.dimensions = trace.newdim)
+                 homog.test = homog.test, hda.call = cl, initial.loadings = initial.loadings, 
+                 trace.dimensions = trace.newdim)
                  
   class(result) <- "hda"
   return(result) 
+}
+
+comp.acc <- function(object){
+  #  number of classes and hda discriminant components
+  #bject$"class.dist"[[2]]
+  ncl     <- length(object$"class.dist"[[1]])
+  ncomps  <- length(object$"class.dist"[[1]][[1]])
+  priors  <- table(object$"grouping") / length(object$"grouping")
+    
+  if(ncomps > 1){
+    # means in hda space
+    cl.means <- object$"class.dist"[[1]][[1]]
+    for(i in 2:ncl) cl.means <- rbind(cl.means, object$"class.dist"[[1]][[i]])
+    # sdevs in hda space
+    cl.sdevs <- sqrt(diag(object$"class.dist"[[2]][[1]]))
+    for(i in 2:ncl) cl.sdevs <- rbind(cl.sdevs, sqrt(diag(object$"class.dist"[[2]][[i]])))
+  }
+  if(ncomps == 1){
+    # means in hda space
+    cl.means <- matrix(as.vector(object$"class.dist"[[1]]), nrow = ncl, ncol = 1)
+    # sdevs in hda space
+    cl.sdevs <- matrix(as.vector(object$"class.dist"[[2]]), nrow = ncl, ncol = 1)
+  }
+  rownames(cl.means) <- names(object$"class.dist"[[1]])
+  rownames(cl.sdevs) <- names(object$"class.dist"[[1]])
+  
+  # compute accurcies of any class in any component
+  comp.acc <- matrix(NA, nrow = ncl, ncol = ncomps) 
+  rownames(comp.acc) <- names(object$"class.dist"[[1]])
+  colnames(comp.acc) <- names(object$"class.dist"[[1]][[1]])
+  
+  for(i in 1:ncl){ #for all classes
+    for(j in 1:ncomps){ #for all components
+      # define vector of other classes
+      ocls <- ((1:ncl)[-i]) 
+      # set vector of decision boundaries for class i (has to be updated for each comparison with any class ocl)
+      dbounds <- NULL
+      for(ocl in ocls){ 
+        m1  <- cl.means[i,j] 
+        m2  <- cl.means[ocl,j]
+        sd1 <- cl.sdevs[i,j]
+        sd2 <- cl.sdevs[ocl,j]
+        pr1 <- priors[i]
+        pr2 <- priors[ocl]                      
+        
+        # calculate decision boundaries for equal variances 
+        # note: intervals for other class are computed
+        if (sd1 == sd2){
+          x1 <- (m1 + m2)/2
+          if(m1 < m2) dbounds <- rbind(dbounds, c(x1, Inf)) 
+          if(m1 > m2) dbounds <- rbind(dbounds, c(-Inf, x1))
+        }
+        
+        # calculate decision boundaries for unequal variances
+        if (sd1 != sd2){
+          pe <- 2*(m1*sd2^2 - m2*sd1^2)/ (sd1^2-sd2^2)
+          # includes prior correction                      
+          qu <- (m1^2*sd2^2+m2^2*sd1^2)/(sd1^2-sd2^2)  +(log(sd2)-log(sd1)+log(pr1)-log(pr2))*(2*sd2^2*sd1^2)/(sd1^2-sd2^2)
+          if((pe^2/4 - qu) >= 0){# usual case  
+            x1 <- -pe/2 - sqrt(pe^2/4 - qu)
+            x2 <- -pe/2 + sqrt(pe^2/4 - qu)
+            if (sd1 > sd2) dbounds <- rbind(dbounds, c(x1, x2)) # higher density within boundaries 
+            if (sd1 < sd2) dbounds <- rbind(dbounds, c(-Inf, x1), c(x2, Inf)) # higher density outside boundaries
+          }          
+          if((pe^2/4 - qu) < 0){# exception: for unequal priors an similar m1,m2 and sd1, sd2 one density can dominate the other   
+            if (sd1 > sd2) dbounds <- rbind(dbounds, c(Inf, Inf)) # f1(x) > f2(x) for all x: no area with higher likelihood of other class 
+            if (sd1 < sd2) dbounds <- rbind(dbounds, c(-Inf, Inf)) # f1(x) < f2(x) for all x: no decision for class one in this component 
+          }
+        }
+      }
+      # merge and align univariate classification bounds
+      if(nrow(dbounds) > 1){
+        sortbounds <- sort(dbounds[,1], index.return = T)
+        dbounds <- dbounds[sortbounds$ix,]
+      }
+      # build union of intervals
+      if(nrow(dbounds) > 1){
+        k <- 2
+        while(k <= nrow(dbounds)){
+          if(dbounds[k, 1] <= dbounds[k-1, 2]){# integrate interval into previous one and set to NA
+            if(dbounds[k, 2] > dbounds[k-1, 2]){# update upper bound if necessary
+              dbounds[k-1, 2] <- dbounds[k, 1]
+            }
+            dbounds[-k,]
+            k <- k-1
+          }
+          k <- k+1
+        }
+      }
+      # compute probabilities between class i - intervalls 
+      probs <- pnorm(dbounds, m1, sd1)
+      probs <- apply(probs, 1, diff)
+      err.cli <- sum(probs)
+      comp.acc[i,j] <- 1-err.cli
+    }
+  }
+  return(comp.acc)
+}
+
+
+
+comp.vlifts <- function(obj){
+  if (obj$reduced.dimension > 1){
+    vlift <- array(NA, c(dim(obj$comp.acc), ncol(obj$x)))
+    dimnames(vlift) <- list(levels(obj$grouping), colnames(obj$comp.acc), rownames(obj$hda.loadings))
+    if (dim(vlift)[2] == 1) dimnames(vlift)[[2]] <- colnames(obj$hda.loadings)[1]
+    for(i in 1:ncol(obj$x)){
+      # create loading vector without component i
+      hdaloads.i <- obj$hda.loadings
+      hdaloads.i[i,] <- 0
+      # ...and transformed space
+      newspace.woi <- as.data.frame(as.matrix(obj$x) %*% hdaloads.i[,1:ncol(obj$comp.acc)])
+      
+      # compute means and covariances
+      classmeans  <- by(newspace.woi, obj$grouping, colMeans)
+      classcovs   <- by(newspace.woi, obj$grouping, cov)
+      vlift[,,i] <- comp.acc(list(grouping = obj$grouping, class.dist = list(classmeans, classcovs)))
+    }
+    # currently vlift contains accuracies of each neutralized variable for any class in each component (array)
+    
+    # compute overall lift of each component in each component (accuracies weighted by priors)
+    vlift.tot <- apply(vlift,2:3,function(z) return(sum(z * as.numeric(obj$priors))))    
+    #does not work: for(i in 1:ncol(obj$x)) vlift.tot[,i] <-  (obj$priors %*% obj$comp.acc) / vlift.tot[,i]
+    comp.tot.accs <- (apply(obj$comp.acc, 2, function(z) return(sum(z * as.numeric(obj$priors)))))
+    for(i in 1:ncol(obj$x)) vlift.tot[,i] <-  comp.tot.accs / vlift.tot[,i]
+    
+    rownames(vlift.tot) <- colnames(obj$comp.acc)
+    colnames(vlift.tot) <- rownames(obj$hda.loadings)
+    
+    # compute lift of each variable for any class in each component (array)  
+    for(i in 1:ncol(obj$x)) vlift[,,i] <-  obj$comp.acc / vlift[,,i]
+    
+    # create result object 
+    vlift <- list("total.lift" = vlift.tot, "classwise.lift" = vlift) 
+  }
+
+  if (obj$reduced.dimension == 1){  
+    vlift <- matrix(NA, nrow = length(obj$comp.acc), ncol = ncol(obj$x))
+    dimnames(vlift) <- list(levels(obj$grouping), rownames(obj$hda.loadings))
+    if (dim(vlift)[2] == 1) dimnames(vlift)[[2]] <- colnames(obj$hda.loadings)[1]
+    for(i in 1:ncol(obj$x)){
+      # create loading vector without component i
+      hdaloads.i <- obj$hda.loadings
+      hdaloads.i[i,] <- 0
+      # ...and transformed space
+      newspace.woi <- as.data.frame(as.matrix(obj$x) %*% hdaloads.i[,1])
+      
+      # compute means and covariances
+      classmeans  <- by(newspace.woi, obj$grouping, colMeans)
+      classcovs   <- by(newspace.woi, obj$grouping, cov)
+      vlift[,i] <- comp.acc(list(grouping = obj$grouping, class.dist = list(classmeans, classcovs)))
+    }
+    # currently vlift contains accuracies of each neutralized variable for any class in each component
+    
+    # compute overall lift of each component in each component (accuracies weighted by priors)
+    vlift.tot <- apply(vlift,2,function(z) return(sum(z * as.numeric(obj$priors))))    
+    #does not work: for(i in 1:ncol(obj$x)) vlift.tot[,i] <-  (obj$priors %*% obj$comp.acc) / vlift.tot[,i]
+    comp.tot.accs <- sum(obj$comp.acc * as.numeric(obj$priors))
+    vlift.tot <-  comp.tot.accs / vlift.tot    
+    names(vlift.tot) <- rownames(obj$hda.loadings)
+    
+    # compute lift of each variable for any class in each component 
+    for(i in 1:ncol(obj$x)) vlift[,i] <-  obj$comp.acc / vlift[,i]
+    
+    # create result object 
+    vlift <- list("total.lift" = vlift.tot, "classwise.lift" = vlift) 
+    
+  }
+  
+  return(vlift)
 }

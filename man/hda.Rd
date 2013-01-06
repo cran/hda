@@ -25,7 +25,7 @@ hda(x, ...)
   \item{reg.lamb}{Parameter in [0,1] for regularization towards equal covariance matrix estimations of the classes (in the original space): 
                   0 means equal covariances, 1 (default) means complete heteroscedasticity.}
   \item{reg.gamm}{Similar to \code{reg.lambd}: parameter for shrinkage towards diagonal covariance matrices of equal variance in all variables where 0 means diagonality. Default is no shrinkage.}
-  \item{initial.loadings}{Initial guess of the matrix of loadings. Must be quadratic of size \code{ncol(x)} Default is the identity matrix.}
+  \item{initial.loadings}{Initial guess of the matrix of loadings. Must be quadratic of size \code{ncol(x)} Default is the identity matrix. By specification of \code{initial.loadings = "random"} a random orthonormal matrix will be generated using \code{qr.Q(qr())} of a random matrix with uniformly distributed elements.}
   \item{sig.levs}{Vector of significance levels for eqmean.test (position 1) and homog.test (pos. 2) to stop search for an appropriate dimension of the reduced space.}
   \item{noutit}{Number iterations of the outer loop, i.e. iterations of the likelihood. Default is 7.}
   \item{ninit}{Number of iterations of the inner loop, i.e. reiterations of the loadings matrix within one iteration step of the likelihood.}
@@ -48,11 +48,14 @@ Burget (2006). Regularization is computed as proposed by Friedman et al. (1989) 
   \item{reduced.dimension}{Input parameter: dimension of the reduced space.}
   \item{naivebayes}{Object of class \code{naiveBayes} trained on input data in the reduced space for classification 
         of new (transformed) data. Its computation must be specified by input the parameter \code{crule}.}
+  \item{comp.acc}{Matrix of accuracies per component and class: reports up to which degree each class can be classified correctly according to the estimated distribution in any single component in the identified subspace. Meaningful for reasons of interpretability as HDA is invariant to reordering of the components.}        
+  \item{vlift}{Returns the variable importance in terms of ratio between the accuracy \code{comp.acc} and the resulting accuracy that results if single variable loadings are set to 0. The first element describes overall accuracy lift where  the second element is an array of dimension (number of classes, number of components in reduced space, number of variables) specifying the lifts for recognition each class separately.}
   \item{reg.lambd}{Input regularization parameter.}
   \item{reg.gamm}{Input regularization parameter.}
   \item{eqmean.test}{Test on equal means of the classes in the remaining dimensions like in \code{manova} based on Wilk's lambda.}
-  \item{homog.test}{Test on homoscedasticity of the classes in the remaining dimensions as proposed by Fahrmeir et al., 1984, p.75.}
+  \item{homog.test}{Test on homoscedasticity of the classes in the remaining dimensions (see e.g. Fahrmeir et al., 1984, p.75.)}
   \item{hda.call}{(Matched) function call.}
+  \item{initial.loadings}{Initialization of the loadings matrix.}
   \item{trace.dimensions}{Matrix of p values for different subspace dimensions (as specified in \code{newdim}).}
 }
 \references{
@@ -60,6 +63,8 @@ Burget, L. (2006): \emph{Combination of speech features using smoothed heterosce
 Proceedings of Interspeech 2004, pp. 2549-2552.
 
 Fahrmeir, L. and Hamerle, A. (1984): \emph{Multivariate statistische Verfahren.} de Gruyter, Berlin.
+
+Friedman, J. (1989): \emph{Regularized discriminant analysis.} JASA 84, 165-175.
 
 Kumar, N. and Andreou, A. (1998): \emph{Heteroscedastic discriminant analysis and reduced rank HMMs 
 for improved speech recognition.} Speech Communication 25, pp.283-297.

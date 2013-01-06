@@ -6,16 +6,18 @@ Visualizes the scores on selected components of the
 discriminant space of reduced dimension.
 }
 \usage{
-\method{plot}{hda}(x, comps = 1:x$reduced.dimension, col = x$grouping, ...)
+\method{plot}{hda}(x, comps = 1:x$reduced.dimension, scores = TRUE, col = x$grouping, ...)
 }
 \arguments{
   \item{x}{An object of class \code{hda}.}
   \item{comps}{A vector of component ids for which the data should be displayed.}
+  \item{scores}{Logical indicating whether the scores in the projected space should be plotted. 
+                If FALSE estimated densities are plotted.}
   \item{col}{Color vector for the data to be displayed. Per default, different colors represent the classes.}
   \item{\dots}{Further arguments to be passed to the plot function.}
 }
 \details{
-Scatterplots of the scores.        
+Scatterplots of the scores or estimated densities.        
 }
 \value{No value is returned.
 }
