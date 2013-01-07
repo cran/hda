@@ -6,17 +6,17 @@ Visualizes the loadings of the original variables on the components of the trans
 discriminant space of reduced dimension.
 }
 \usage{
-showloadings(object, comps = 1:object$reduced.dimension, ...)
+showloadings(object, comps = 1:object$reduced.dimension, loadings = TRUE, ...)
 }
 \arguments{
   \item{object}{An object of class \code{hda}.}
   \item{comps}{A vector of component ids for which the loadings should be displayed.}
+  \item{loadings}{Logical indicating whether loadings or variable importance lifts should be plotted.}  
   \item{\dots}{Further arguments to be passed to the plot functions.}
 
 }
 \details{
-Scatterplots where the loading of any variable on any hda component is represented by one point of different 
-colour and shape. Gives an idea of what variables do mainly contribute to the different discriminant components.      
+Scatterplots of loadings (or lifts) of any variable on any hda componentto give an idea of what variables do mainly contribute to the different discriminant components.      
 }
 \value{No value is returned.
 }

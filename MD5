@@ -1,7 +1,7 @@
-ef600550c334bb07ff57d09a2ff8ffe9 *DESCRIPTION
+cd2f8d32a39070cf424be6bf0f0c86c1 *DESCRIPTION
 e176d4ea0013b5c1f1561b35ee44251c *NAMESPACE
-608924629c5127459cff3c3db1c84cd1 *R/hda.r
-37b2e1e7ebb1d57284da48a7d8d02cc5 *man/hda.Rd
-3638136b6a56e562b1854d53f7e700c0 *man/plot.hda.rd
+00d7bcb491d1281a55317ba0311cb5c8 *R/hda.r
+f31fdeb1a9f1daa44765882004a8ffc4 *man/hda.Rd
+35ac2ee42dd0aecffd78cc1fae66172a *man/plot.hda.rd
 75f80c5903e4430cca4a2573f1d5b424 *man/predict.hda.Rd
-314383473e9dc9e36aad69c735bb8d6a *man/showloadings.Rd
+c6b650b195b956d1bed99e8ad6d8dbd9 *man/showloadings.Rd
