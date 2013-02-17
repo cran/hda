@@ -132,17 +132,21 @@ plot.hda <- function(x, comps = 1:x$reduced.dimension, scores = TRUE, col = x$gr
     for(d in comps){
       k <- 1
       mean.kd <- x$class.dist$new.classmeans[[k]][d]
-      sd.kd <- sqrt(x$class.dist$new.classcovs[[k]][d,d])
+      if(is.matrix(x$class.dist$new.classcovs[[k]])) sd.kd <- sqrt(x$class.dist$new.classcovs[[k]][d,d])
+      if(!is.matrix(x$class.dist$new.classcovs[[k]])) sd.kd <- sqrt(x$class.dist$new.classcovs[[k]]) # distinction: for newdim=1 classcovs is no matrix
       xpts <- seq(min(x$hda.scores[,d]), max(x$hda.scores[,d]), length.out = 500)
       ymax <- max(priors[k]*dnorm(xpts, mean = mean.kd, sd = sd.kd))
-      for (j in 2:ncl) ymax <- max(ymax, priors[k]*dnorm(xpts, mean = x$class.dist$new.classmeans[[j]][d], sd = sqrt(x$class.dist$new.classcovs[[j]][d,d])))
+      if(is.matrix(x$class.dist$new.classcovs[[k]])) for (j in 2:ncl) ymax <- max(ymax, priors[j]*dnorm(xpts, mean = x$class.dist$new.classmeans[[j]][d], sd = sqrt(x$class.dist$new.classcovs[[j]][d,d])))
+      if(!is.matrix(x$class.dist$new.classcovs[[k]])) for (j in 2:ncl) ymax <- max(ymax, priors[j]*dnorm(xpts, mean = x$class.dist$new.classmeans[[j]][d], sd = sqrt(x$class.dist$new.classcovs[[j]])))
+      
       
       plot(xpts, priors[k]*dnorm(xpts, mean = mean.kd, sd = sd.kd), col = k, type = "l",
            ylim = c(0, ymax), xlab = colnames(x$hda.scores)[d], ylab = "prior[k] * f(x|k)")
       lines(rep(mean.kd, 2), c(0, priors[k]*dnorm(mean.kd, mean.kd, sd.kd)), lty = "dotted", col =k)
       for(k in 2:ncl){
         mean.kd <- x$class.dist$new.classmeans[[k]][d]
-        sd.kd <- sqrt(x$class.dist$new.classcovs[[k]][d,d])
+        if(is.matrix(x$class.dist$new.classcovs[[k]])) sd.kd <- sqrt(x$class.dist$new.classcovs[[k]][d,d])
+        if(!is.matrix(x$class.dist$new.classcovs[[k]])) sd.kd <- sqrt(x$class.dist$new.classcovs[[k]])
         xpts <- seq(min(x$hda.scores[,d]), max(x$hda.scores[,d]), length.out = 500)
         lines(xpts, priors[k]*dnorm(xpts, mean = mean.kd, sd = sd.kd), col = k)
         lines(rep(mean.kd, 2), c(0, priors[k]*dnorm(mean.kd, mean.kd, sd.kd)), lty = "dotted", col =k)        
@@ -514,7 +518,7 @@ comp.acc <- function(object){
         if (sd1 != sd2){
           pe <- 2*(m1*sd2^2 - m2*sd1^2)/ (sd1^2-sd2^2)
           # includes prior correction                      
-          qu <- (m1^2*sd2^2+m2^2*sd1^2)/(sd1^2-sd2^2)  +(log(sd2)-log(sd1)+log(pr1)-log(pr2))*(2*sd2^2*sd1^2)/(sd1^2-sd2^2)
+          qu <- (sd2^2*m1^2 - sd1^2*m2^2 - sd1^2 * sd2^2 * 2*(log(sd2)-log(sd1)+log(pr1)-log(pr2))) / (sd2^2-sd1^2)          
           if((pe^2/4 - qu) >= 0){# usual case  
             x1 <- -pe/2 - sqrt(pe^2/4 - qu)
             x2 <- -pe/2 + sqrt(pe^2/4 - qu)
@@ -538,9 +542,10 @@ comp.acc <- function(object){
         while(k <= nrow(dbounds)){
           if(dbounds[k, 1] <= dbounds[k-1, 2]){# integrate interval into previous one and set to NA
             if(dbounds[k, 2] > dbounds[k-1, 2]){# update upper bound if necessary
-              dbounds[k-1, 2] <- dbounds[k, 1]
+              dbounds[k-1, 2] <- dbounds[k, 2]
             }
-            dbounds[-k,]
+            if(nrow(dbounds) == 2) dbounds <- matrix(dbounds[-k,], nrow=1) # convert resulting vector into matrix
+            if(nrow(dbounds) > 2) dbounds <- dbounds[-k,]            
             k <- k-1
           }
           k <- k+1
@@ -628,3 +633,76 @@ comp.vlifts <- function(obj){
   
   return(vlift)
 }
+
+
+
+
+
+#showloadings <- function(object, comps = 1:object$reduced.dimension, loadings = TRUE, ...){
+#  if (max(comps) > nrow(object$hda.loadings)) 
+#    stop("Component ids have to be <= dimension of object$hda.loadings")
+#  vnames <- rownames(object$hda.loadings)
+#  
+#  #  
+#  if(!loadings){
+#    lftfrme <- t(object$vlift$classwise.lift[1,,]) 
+#    clss <- rep(levels(object$grouping), each = nrow(lftfrme))
+#    vnames <- rep(rownames(lftfrme), length(levels(object$grouping)))
+#    for(i in 2:length(table(object$grouping))) lftfrme <- rbind(lftfrme, t(object$vlift$classwise.lift[i,,])) 
+#    #    # invert lifts
+#    #    lftfrme <- 1/lftfrme
+#    if (max(comps) > nrow(lftfrme)) 
+#      stop("Component ids have to be <= dimension of object$hda.loadings")
+#    
+#  }
+#  
+#  d <- length(comps)
+#  if(d > 2){
+#    op <- par(mfrow=c(d,d))
+#    for(i in comps){
+#      for(j in comps){
+#        if(loadings){
+#          plot(object$hda.loadings[,c(j,i)], type="n", ...)
+#          for(k in 1:nrow(object$hda.loadings)) 
+#            text(object$hda.loadings[k,j], object$hda.loadings[k,i], vnames[k])
+#        }
+#        if(!loadings){
+#          plot(lftfrme[,c(j,i)], type="n", ...)
+#          for(k in 1:nrow(lftfrme)) 
+#            text(lftfrme[k,j], lftfrme[k,i], vnames[k], col  = as.integer(clss)[k])
+#        }
+#        
+#      }
+#    }
+#  }
+#  if(d==2){
+#    op <- par(mfrow=c(1,1))
+#    if(loadings){ 
+#      plot(object$hda.loadings[,c(comps[1],comps[2])], type="n", ...)
+#      for(k in 1:nrow(object$hda.loadings)) 
+#        text(object$hda.loadings[k,comps[1]], object$hda.loadings[k,comps[2]], vnames[k]) 
+#    }
+#    if(!loadings){
+#      plot(lftfrme[,c(comps[1],comps[2])], type="n", ...)
+#      for(k in 1:nrow(lftfrme)) 
+#        text(lftfrme[k,comps[1]], lftfrme[k,comps[2]], vnames[k], col = as.integer(clss)[k])       
+#    }
+#  }    
+#  if(d==1){
+#    op <- par(mfrow=c(1,1))
+#    if(loadings){       
+#      plot(object$hda.loadings[,comps], type="n", xlab="Variable index", ylab=colnames(object$hda.loadings)[comps], ...)
+#      for(k in 1:nrow(object$hda.loadings)) 
+#        text(k, object$hda.loadings[k,comps], vnames[k])
+#    }
+#    if(!loadings){
+#      plot(lftfrme[,comps], type="n", xlab="Variable index", ylab=colnames(lftfrme)[comps], ...)
+#      for(k in 1:nrow(lftfrme)) 
+#        text(k, lftfrme[k,comps], vnames[k], col = as.integer(clss)[k])
+#      
+#    } 
+#    
+#  }     
+#  par(op)
+#}
+#
