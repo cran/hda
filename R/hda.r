@@ -170,14 +170,14 @@ predict.hda <- function(object, newdata, alldims = FALSE, task = c("dr", "c"), .
   if(task == "dr"){
     new.transformed.data <- newdata %*% object$hda.loadings
     if(!alldims) 
-        new.transformed.data <- new.transformed.data[,1:object$reduced.dimension]
+        new.transformed.data <- new.transformed.data[,1:object$reduced.dimension,drop=FALSE]
     return(new.transformed.data)
   }
   if (task == "c"){
     if(class(object$naivebayes) != "naiveBayes") 
         stop("Classification of newdata can only be done id option 'crule = TRUE' has been chosen at hda() call")
     new.transformed.data <- newdata %*% object$hda.loadings
-    new.transformed.data <- new.transformed.data[,1:object$reduced.dimension]
+    new.transformed.data <- new.transformed.data[,1:object$reduced.dimension,drop=FALSE]
     prediction <- "Remove argument type = 'raw' in predict() call of naiveBayes() call or set it to 'class'."
     posteriors <- "Remove argument type = 'class' in predict() call of naiveBayes() call or set it to 'raw'."
     if (object$reduced.dimension > 1){
