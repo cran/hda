@@ -48,7 +48,7 @@ Burget (2006). Regularization is computed as proposed by Friedman et al. (1989) 
   \item{reduced.dimension}{Input parameter: dimension of the reduced space.}
   \item{naivebayes}{Object of class \code{naiveBayes} trained on input data in the reduced space for classification 
         of new (transformed) data. Its computation must be specified by input the parameter \code{crule}.}
-  \item{comp.acc}{Matrix of accuracies per component and class: reports up to which degree each class can be classified correctly according to the estimated distribution in any single component in the identified subspace. Meaningful for reasons of interpretability as HDA is invariant to reordering of the components.}        
+  \item{comp.acc}{Matrix of accuracies per component and class: reports up to which degree each class k can be classified (\eqn{P(f_k>f_{\ne k})}{P(f[k]>f[!k])}) correctly according to the estimated (normal) distribution in any single component in the identified subspace. Meaningful for reasons of interpretability as HDA is invariant to reordering of the components.}        
   \item{vlift}{Returns the variable importance in terms of ratio between the accuracy \code{comp.acc} and the resulting accuracy that results if single variable loadings are set to 0. The first element describes overall accuracy lift where  the second element is an array of dimension (number of classes, number of components in reduced space, number of variables) specifying the lifts for recognition each class separately.}
   \item{reg.lambd}{Input regularization parameter.}
   \item{reg.gamm}{Input regularization parameter.}

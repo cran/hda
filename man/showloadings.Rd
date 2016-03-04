@@ -16,7 +16,7 @@ showloadings(object, comps = 1:object$reduced.dimension, loadings = TRUE, ...)
 
 }
 \details{
-Scatterplots of loadings (or lifts) of any variable on any hda componentto give an idea of what variables do mainly contribute to the different discriminant components.      
+Scatterplots of loadings (or lifts) of any variable on any hda component to give an idea of what variables do mainly contribute to the different discriminant components (see corresponding values of \code{object}). Note that as opposed to linear discriminant analysis not only location but also scale differences contribute to class discrimination of the hda components.    
 }
 \value{No value is returned.
 }

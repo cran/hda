@@ -5,3 +5,6 @@ S3method(predict, hda)
 S3method(print, hda)
 S3method(plot, hda)
 import(e1071)
+importFrom("graphics", "lines", "par", "plot", "text")
+importFrom("stats", "aov", "cov", "dnorm", "manova", "model.matrix",
+     "model.response", "pchisq", "pnorm", "predict", "runif")
